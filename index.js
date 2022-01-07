@@ -41,12 +41,16 @@ module.exports = function(file, options, callback) {
 				var fingerprint = results.fingerprint
 					.split(",")
 					.map(function(value) {
+						// SO, ON TESTING INTS HERE ARE GREATER THAN THE MAX SIGNED 32BIT INT WHICH CAUSES ISSUES FOR .writeInt32BE() below.
+						// BASED ON ANSWER TO COMMENT FROM jbru HERE: https://oxygene.sk/2011/01/how-does-chromaprint-work/ BEING SIGNED
+						// DOESN'T MATTER SO GOING TO SWITCH TO UNSIGNED METHOD .writeUIntBE() BELOW WHEN WRITING TO BUFFER
 						return parseInt(value);
 					});
 				results.fingerprintRaw = results.fingerprint;
-				results.fingerprint = new Buffer(fingerprint.length * 4);
+				// UPDATING DEPREVATED new Buffer() TO Buffer.alloc() 
+				results.fingerprint = Buffer.alloc(fingerprint.length * 4);
 				for (var i = 0; i < fingerprint.length; i ++) {
-					results.fingerprint.writeInt32BE(fingerprint[i], i * 4, true);
+					results.fingerprint.writeUInt32BE(fingerprint[i], i * 4, true);
 				}
 			}
 			callback(null, results);
